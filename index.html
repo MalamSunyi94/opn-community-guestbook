@@ -5,13 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>OPN Guestbook</title>
 
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+
   <style>
     body{
-      background:#0b0b12;
+      background:#090912;
       color:white;
       font-family:Arial,sans-serif;
       text-align:center;
-      padding-top:80px;
+      padding-top:50px;
     }
 
     .card{
@@ -21,25 +23,35 @@
       background:#151524;
       padding:30px;
       border-radius:20px;
-      box-shadow:0 0 20px rgba(128,0,255,.2);
+      box-shadow:0 0 20px rgba(140,0,255,.25);
     }
 
     h1{
       color:#9d6bff;
     }
 
-    p{
-      opacity:.8;
+    input{
+      width:90%;
+      padding:12px;
+      border:none;
+      border-radius:10px;
+      margin-top:20px;
     }
 
-    .btn{
-      margin-top:20px;
+    button{
+      margin-top:15px;
+      padding:12px 20px;
+      border:none;
+      border-radius:10px;
       background:#7c4dff;
       color:white;
-      border:none;
-      padding:12px 20px;
-      border-radius:10px;
       cursor:pointer;
+      font-size:16px;
+    }
+
+    #status{
+      margin-top:20px;
+      opacity:.8;
     }
 
   </style>
@@ -52,23 +64,116 @@
     <h1>OPN Guestbook ⚡</h1>
 
     <p>
-      Community guestbook smart contract
-      built on OPN Chain.
+      Community guestbook smart contract built on OPN Chain.
     </p>
 
     <p>
       Creator: malamsunyi94
     </p>
 
-    <button class="btn">
-      Builder Pass Claimed ✅
+    <button onclick="connectWallet()">
+      Connect Wallet
     </button>
 
-    <p style="margin-top:30px;">
+    <br>
+
+    <input
+      type="text"
+      id="messageInput"
+      placeholder="Write your message..."
+    />
+
+    <br>
+
+    <button onclick="sendMessage()">
+      Send Message
+    </button>
+
+    <p id="status">
+      Builder Pass Claimed ✅
+    </p>
+
+    <p>
       Accelerate ⋂
     </p>
 
   </div>
+
+<script>
+
+const contractAddress =
+"0xF339E39c96df9Ca92145123604EEca69C156cd01";
+
+const abi = [
+  "function leaveMessage(string memory _text) public",
+  "function totalMessages() public view returns(uint256)"
+];
+
+let provider;
+let signer;
+let contract;
+
+async function connectWallet(){
+
+  if(window.ethereum){
+
+    provider =
+      new ethers.providers.Web3Provider(window.ethereum);
+
+    await provider.send("eth_requestAccounts", []);
+
+    signer = provider.getSigner();
+
+    contract = new ethers.Contract(
+      contractAddress,
+      abi,
+      signer
+    );
+
+    document.getElementById("status")
+      .innerText = "Wallet Connected ⚡";
+
+  } else {
+
+    alert("Install MetaMask");
+
+  }
+}
+
+async function sendMessage(){
+
+  const message =
+    document.getElementById("messageInput").value;
+
+  if(!message){
+    alert("Enter a message");
+    return;
+  }
+
+  try{
+
+    const tx =
+      await contract.leaveMessage(message);
+
+    document.getElementById("status")
+      .innerText = "Transaction Pending...";
+
+    await tx.wait();
+
+    document.getElementById("status")
+      .innerText = "Message Sent ✅";
+
+  } catch(err){
+
+    console.log(err);
+
+    document.getElementById("status")
+      .innerText = "Transaction Failed ❌";
+
+  }
+}
+
+</script>
 
 </body>
 </html>
