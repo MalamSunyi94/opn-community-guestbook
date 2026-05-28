@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>OPN Guestbook</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 
   <style>
+
     body{
       background:#090912;
       color:white;
@@ -100,7 +101,9 @@
   </div>
 
 <script>
-const contractAddress = "0xF339E39c96df9Ca92145123604EEca69C156cd01";
+
+const contractAddress =
+"0xF339E39c96df9Ca92145123604EEca69C156cd01";
 
 const abi = [
   "function leaveMessage(string memory _text) public",
@@ -112,26 +115,43 @@ let signer;
 let contract;
 
 function getEthereumProvider() {
+
   if (window.ethereum?.providers?.length) {
-    return window.ethereum.providers.find(p => p.isMetaMask) 
-      || window.ethereum.providers[0];
+
+    return window.ethereum.providers.find(
+      p => p.isMetaMask
+    ) || window.ethereum.providers[0];
+
   }
 
   return window.ethereum;
 }
 
 async function connectWallet() {
+
   try {
+
     const ethProvider = getEthereumProvider();
 
     if (!ethProvider) {
-      alert("Wallet not detected. Open this site inside MetaMask, OKX, Bitget, Trust Wallet, or another Web3 wallet browser.");
+
+      alert(
+        "Wallet not detected. Open this site inside MetaMask, OKX, Bitget, Trust Wallet, or another Web3 wallet browser."
+      );
+
       return;
     }
 
-    provider = new ethers.providers.Web3Provider(ethProvider, "any");
+    provider =
+      new ethers.providers.Web3Provider(
+        ethProvider,
+        "any"
+      );
 
-    await provider.send("eth_requestAccounts", []);
+    await provider.send(
+      "eth_requestAccounts",
+      []
+    );
 
     signer = provider.getSigner();
 
@@ -141,44 +161,75 @@ async function connectWallet() {
       signer
     );
 
-    const address = await signer.getAddress();
+    const address =
+      await signer.getAddress();
 
-    document.getElementById("status").innerText =
-      "Connected: " + address.slice(0, 6) + "..." + address.slice(-4);
+    document.getElementById("status")
+      .innerText =
+      "Connected: " +
+      address.slice(0,6) +
+      "..." +
+      address.slice(-4);
 
   } catch (error) {
-    alert("Connect failed: " + error.message);
+
+    alert(
+      "Connect failed: " +
+      error.message
+    );
+
   }
 }
 
 async function sendMessage() {
+
   try {
+
     if (!contract) {
+
       alert("Connect wallet first");
+
       return;
     }
 
-    const message = document.getElementById("messageInput").value;
+    const message =
+      document.getElementById(
+        "messageInput"
+      ).value;
 
     if (!message) {
+
       alert("Enter a message first");
+
       return;
     }
 
-    const tx = await contract.leaveMessage(message);
+    const tx =
+      await contract.leaveMessage(
+        message
+      );
 
-    document.getElementById("status").innerText =
+    document.getElementById("status")
+      .innerText =
       "Transaction pending...";
 
     await tx.wait();
 
-    document.getElementById("status").innerText =
+    document.getElementById("status")
+      .innerText =
       "Message sent ✅";
 
   } catch (error) {
-    alert("Transaction failed: " + error.message);
+
+    alert(
+      "Transaction failed: " +
+      error.message
+    );
+
   }
 }
-  </script>
+
+</script>
+
 </body>
 </html>
