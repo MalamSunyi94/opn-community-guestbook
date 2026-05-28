@@ -100,9 +100,7 @@
   </div>
 
 <script>
-
-const contractAddress =
-"0xF339E39c96df9Ca92145123604EEca69C156cd01";
+const contractAddress = "0xF339E39c96df9Ca92145123604EEca69C156cd01";
 
 const abi = [
   "function leaveMessage(string memory _text) public",
@@ -113,12 +111,25 @@ let provider;
 let signer;
 let contract;
 
-async function connectWallet(){
+function getEthereumProvider() {
+  if (window.ethereum?.providers?.length) {
+    return window.ethereum.providers.find(p => p.isMetaMask) 
+      || window.ethereum.providers[0];
+  }
 
-  if(window.ethereum){
+  return window.ethereum;
+}
 
-    provider =
-      new ethers.providers.Web3Provider(window.ethereum);
+async function connectWallet() {
+  try {
+    const ethProvider = getEthereumProvider();
+
+    if (!ethProvider) {
+      alert("Wallet not detected. Open this site inside MetaMask, OKX, Bitget, Trust Wallet, or another Web3 wallet browser.");
+      return;
+    }
+
+    provider = new ethers.providers.Web3Provider(ethProvider, "any");
 
     await provider.send("eth_requestAccounts", []);
 
@@ -130,50 +141,44 @@ async function connectWallet(){
       signer
     );
 
-    document.getElementById("status")
-      .innerText = "Wallet Connected ⚡";
+    const address = await signer.getAddress();
 
-  } else {
+    document.getElementById("status").innerText =
+      "Connected: " + address.slice(0, 6) + "..." + address.slice(-4);
 
-    alert("Install MetaMask");
-
+  } catch (error) {
+    alert("Connect failed: " + error.message);
   }
 }
 
-async function sendMessage(){
+async function sendMessage() {
+  try {
+    if (!contract) {
+      alert("Connect wallet first");
+      return;
+    }
 
-  const message =
-    document.getElementById("messageInput").value;
+    const message = document.getElementById("messageInput").value;
 
-  if(!message){
-    alert("Enter a message");
-    return;
-  }
+    if (!message) {
+      alert("Enter a message first");
+      return;
+    }
 
-  try{
+    const tx = await contract.leaveMessage(message);
 
-    const tx =
-      await contract.leaveMessage(message);
-
-    document.getElementById("status")
-      .innerText = "Transaction Pending...";
+    document.getElementById("status").innerText =
+      "Transaction pending...";
 
     await tx.wait();
 
-    document.getElementById("status")
-      .innerText = "Message Sent ✅";
+    document.getElementById("status").innerText =
+      "Message sent ✅";
 
-  } catch(err){
-
-    console.log(err);
-
-    document.getElementById("status")
-      .innerText = "Transaction Failed ❌";
-
+  } catch (error) {
+    alert("Transaction failed: " + error.message);
   }
 }
-
-</script>
-
+  </script>
 </body>
 </html>
