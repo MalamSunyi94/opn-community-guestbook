@@ -105,6 +105,23 @@
 const contractAddress =
 "0xF339E39c96df9Ca92145123604EEca69C156cd01";
 
+const opnChain = {
+  chainId: "0x3D8",
+  chainName: "IOPn Testnet",
+  nativeCurrency: {
+    name: "OPN",
+    symbol: "OPN",
+    decimals: 18
+  },
+  rpcUrls: [
+    "https://testnet-rpc.iopn.tech",
+    "https://testnet-rpc2.iopn.tech"
+  ],
+  blockExplorerUrls: [
+    "https://testnet.iopn.tech"
+  ]
+};
+  
 const abi = [
   "function leaveMessage(string memory _text) public",
   "function totalMessages() public view returns(uint256)"
@@ -127,11 +144,39 @@ function getEthereumProvider() {
   return window.ethereum;
 }
 
+async function switchToOPN(ethProvider) {
+
+  try {
+
+    await ethProvider.request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: opnChain.chainId }]
+    });
+
+  } catch (switchError) {
+
+    if (switchError.code === 4902) {
+
+      await ethProvider.request({
+        method: "wallet_addEthereumChain",
+        params: [opnChain]
+      });
+
+    } else {
+
+      throw switchError;
+
+    }
+  }
+}
+  
 async function connectWallet() {
 
   try {
 
     const ethProvider = getEthereumProvider();
+    
+    await switchToOPN(ethProvider);
 
     if (!ethProvider) {
 
@@ -184,6 +229,13 @@ async function connectWallet() {
 async function sendMessage() {
 
   try {
+
+    const ethProvider =
+      getEthereumProvider();
+
+    await switchToOPN(
+      ethProvider
+    );
 
     if (!contract) {
 
